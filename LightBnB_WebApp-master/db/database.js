@@ -75,12 +75,9 @@ const addUser = function (user) {
    [name, email, password] 
   )
   .then((result) => {
-    if (result.rows.length){
-      return result.rows[0];
-    }else{
-      return null
-    }
+      return result.rows;
   })
+
   .catch((error) => {
     console.error(error)
   })
@@ -96,20 +93,21 @@ const addUser = function (user) {
  */
 const getAllReservations = function (guest_id, limit = 10) {
   return pool.query (
-    `SELECT *
+    `SELECT properties.thumbnail_photo_url, properties.title, number_of_bedrooms, number_of_bathrooms, parking_spaces, reservations.start_date, reservations.end_date, AVG(rating), properties.cost_per_night
     FROM reservations
-    JOIN users ON reservations.guest_id = users.id
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
     WHERE reservations.guest_id = $1
-    Limit $2;`,
+    GROUP BY properties.id, reservations.id
+    ORDER BY reservations.start_date
+    LIMIT $2;`,
+   
     [guest_id,limit]
   )
   .then((result) => {
-    if (result.rows.length){
-      return result.rows[0];
-    }else{
-      return null
-    }
+      return result.rows;
   })
+
   .catch((error) => {
     console.error(error.message)
   })
@@ -128,11 +126,11 @@ const getAllProperties = (options, limit = 10) => {
   .query(
     `SELECT * FROM properties LIMIT $1` , [limit])
   .then((result) => {
-    console.log(result.rows);
+   
     return result.rows;
   })
   .catch((err) => {
-    console.log(err.message);
+    console.error(err.message);
   });
 };
 
