@@ -9,7 +9,7 @@ const pool = new Pool({
   database: "lightbnb",
 });
 
-pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
+// pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
 
 /// Users
 
@@ -66,7 +66,6 @@ const getUserWithId = function (id) {
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function (user) {
-  console.log(user);
   const {name, email, password} = user;
   return pool.query(
    `INSERT INTO users (name, email, password)
@@ -177,10 +176,22 @@ return pool.query(queryString, queryParams).then((res) => res.rows);
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function (property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const {owner_id, title, description, thumbnail_photo_url, cover_photo_url,cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms } = property;
+  return pool.query(
+    `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url,cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    RETURNING *;`,
+    [owner_id, title, description, thumbnail_photo_url, cover_photo_url,cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms] 
+   )
+   
+   .then((result) => {
+       return result.rows;
+   })
+ 
+   .catch((error) => {
+     console.error(error)
+   })
+   
 };
 
 module.exports = {
